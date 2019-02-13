@@ -1,6 +1,11 @@
 FROM ubuntu:18.04
 
+ENV UNITY3D_VERSION '2018.3.0f2'
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update;
+RUN apt-get install -y --no-install-recommends apt-utils;
+RUN apt-get install -y libsoup2.4 libarchive-dev;
 RUN apt-get install -y git gconf-service lib32gcc1 lib32stdc++6 libasound2;
 RUN apt-get install -y libc6 libc6-i386 libcairo2 libcap2 libcups2 libdbus-1-3;
 RUN apt-get install -y libexpat1 libfontconfig1 libfreetype6 libgcc1 libgconf-2-4;
@@ -12,20 +17,6 @@ RUN apt-get install -y debconf npm xdg-utils lsb-release libpq5;
 RUN apt-get install -y xvfb wget;
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN wget -nv https://beta.unity3d.com/download/6e9a27477296/UnitySetup-2018.3.0f2 -O unity.deb; \
-  # compare sha1 if given
-  if [ -n "${SHA1}" -a "${SHA1}" != "" ]; then \
-    echo "${SHA1}  unity.deb" | shasum -a 1 --check -; \
-  else \
-    echo "no sha1 given, skipping checksum"; \
-  fi
-
-# install unity
-RUN dpkg -i unity.deb && rm unity.deb
-  # make a directory for the certificate Unity needs to run
-RUN mkdir -p $HOME/.local/share/unity3d/Certificates/
-
-ADD CACerts.pem $HOME/.local/share/unity3d/Certificates/
-
-# Clean up
-RUN rm -rf /tmp/* /var/tmp/*
+ADD https://beta.unity3d.com/download/6e9a27477296/UnitySetup-${UNITY3D_VERSION} /opt/Unity
+RUN chmod +x /opt/Unity
+RUN mkdir /opt/Unity-${UNITY3D_VERSION} && yes | /opt/Unity --unattended --install-location /opt/Unity-${UNITY3D_VERSION} && rm -rf /tmp/* /var/tmp/*
